@@ -50,7 +50,7 @@ class Events extends Command
         $dataTimestamp["updatetime"]=$min_block_timestamp+59;
         $dataTimestamp['datetime']=date("Y-m-d H:i:s",time());
         $allTrc20Transaction=array();
-        $Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$dataTimestamp["updatetime"]."000&limit=200";//正式服
+        //$Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$dataTimestamp["updatetime"]."000&limit=200";//正式服
         $Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$dataTimestamp["updatetime"]."000&limit=200";//nile测试服
         $Trc20Transaction=$this->GetTrc20Transaction($Trc20TransactionUrl);
         if(count($Trc20Transaction["data"])>0){
