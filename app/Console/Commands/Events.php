@@ -66,7 +66,7 @@ class Events extends Command
                 $allTrc20Transaction[]=$sqlTrc20Transaction;
             }
         }
-        DB::table('erc20_transactions')->insert($allTrc20Transaction);
+        DB::table('trc20_transactions')->insert($allTrc20Transaction);
         DB::table('updatetime')->insert($dataTimestamp);
         //获取发推送
         $results = DB::select("SELECT
