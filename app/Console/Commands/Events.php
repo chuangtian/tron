@@ -47,10 +47,9 @@ class Events extends Command
         }else{
             $min_block_timestamp=$NUpdatetime->updatetime+1;
         }
-        $dataTimestamp2["updatetime"]=$min_block_timestamp+29;
-        $dataTimestamp['datetime']=date("Y-m-d H:i:s",time());
+        $max_block_timestamp=$min_block_timestamp+29;
         $allTrc20Transaction=array();
-        $Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$dataTimestamp2["updatetime"]."000&limit=200";//正式服
+        $Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$max_block_timestamp."000&limit=200";//正式服
         //$Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$dataTimestamp["updatetime"]."000&limit=200";//nile测试服
         $Trc20Transaction=$this->GetTrc20Transaction($Trc20TransactionUrl);
         if(count($Trc20Transaction["data"])>0){
@@ -66,27 +65,27 @@ class Events extends Command
                 $allTrc20Transaction[]=$sqlTrc20Transaction;
             }
         }
-        DB::table('trc20_transactions')->insert($allTrc20Transaction);
-
-        $dataTimestamp["updatetime"]=$dataTimestamp2["updatetime"]+30;
-        $allTrc20Transaction2=array();
-        $Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$dataTimestamp2["updatetime"]."000&max_block_timestamp=".$dataTimestamp["updatetime"]."000&limit=200";//正式服
-        //$Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$dataTimestamp2["updatetime"]."000&max_block_timestamp=".$dataTimestamp["updatetime"]."000&limit=200";//nile测试服
+        $max_block_timestamp=$max_block_timestamp+1;
+        $dataTimestamp['updatetime']=$max_block_timestamp+29;
+        $dataTimestamp['datetime']=date("Y-m-d H:i:s",time());
+        $Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$max_block_timestamp."000&max_block_timestamp=".$dataTimestamp['updatetime']."000&limit=200";//正式服
+        //$Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$max_block_timestamp."000&max_block_timestamp=".$dataTimestamp['updatetime']."000&limit=200";//nile测试服
         $Trc20Transaction=$this->GetTrc20Transaction($Trc20TransactionUrl);
         if(count($Trc20Transaction["data"])>0){
             foreach ($Trc20Transaction["data"] as $key => $value) {
-                $allTrc20Transaction2['block_number']=$value['block_number'];
-                $allTrc20Transaction2['block_timestamp']=$value['block_timestamp'];
-                $allTrc20Transaction2['contract_address']=$value['contract_address'];
-                $allTrc20Transaction2['from']='41'.substr($value['result']['from'],2);
-                $allTrc20Transaction2['to']='41'.substr($value['result']['to'],2);
-                $allTrc20Transaction2['value']=$value['result']['value'];
-                $allTrc20Transaction2['transaction_id']=$value['transaction_id'];
-                $allTrc20Transaction2['datetime']=date("Y-m-d H:i:s",time());
-                $allTrc20Transaction2[]=$allTrc20Transaction2;
+                $sqlTrc20Transaction['block_number']=$value['block_number'];
+                $sqlTrc20Transaction['block_timestamp']=$value['block_timestamp'];
+                $sqlTrc20Transaction['contract_address']=$value['contract_address'];
+                $sqlTrc20Transaction['from']='41'.substr($value['result']['from'],2);
+                $sqlTrc20Transaction['to']='41'.substr($value['result']['to'],2);
+                $sqlTrc20Transaction['value']=$value['result']['value'];
+                $sqlTrc20Transaction['transaction_id']=$value['transaction_id'];
+                $sqlTrc20Transaction['datetime']=date("Y-m-d H:i:s",time());
+                $allTrc20Transaction[]=$sqlTrc20Transaction;
             }
         }
-        DB::table('trc20_transactions')->insert($allTrc20Transaction2);
+        
+        DB::table('trc20_transactions')->insert($allTrc20Transaction);
         DB::table('updatetime')->insert($dataTimestamp);
         //获取发推送
         $results = DB::select("SELECT
