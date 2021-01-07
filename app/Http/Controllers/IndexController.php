@@ -21,70 +21,18 @@ class IndexController extends Controller
 
     public function index()
     {
-    	$results = DB::select("SELECT
 
-			contract_address,
-			transaction_id,
-			hexAddress,
-			`to`,
-			platformName,
-			address
-		FROM
-			tron.trc20_transactions
-		INNER JOIN tron.accounts ON `to` = tron.accounts.hexAddress
-		WHERE
-			(
-				block_timestamp >= :min_block_timestamp
-				AND :max_block_timestamp >= block_timestamp
-			)
-		AND (
-			`to` IN (
-				SELECT
-					hexAddress
-				FROM
-					tron.accounts
-			)
-		)
-		AND (
-			contract_address IN (
-				'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t'
-			)
-		)", ['min_block_timestamp' => 1609697391000,'max_block_timestamp'=>1609697448000]);
-    	dd($results);
-    	//获取数据库中最高块
-        $NUpdatetime = DB::table('updatetime')->orderBy('id', 'desc')->first();
-        if(!$NUpdatetime){
-        	$min_block_timestamp=time()-90;
-        }else{
-        	$min_block_timestamp=$NUpdatetime->updatetime+1;
-        }
-        $dataTimestamp["updatetime"]=$min_block_timestamp+59;
-        $dataTimestamp['datetime']=date("Y-m-d H:i:s",time());
-        $allTrc20Transaction=array();
-    	$Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$dataTimestamp["updatetime"]."000&limit=200";//正式服
-    	//$Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&block_number=$i&limit=50";//nile测试服
-    	$Trc20Transaction=$this->GetTrc20Transaction($Trc20TransactionUrl);
-    	if(count($Trc20Transaction["data"])>0){
-    		foreach ($Trc20Transaction["data"] as $key => $value) {
-    			$sqlTrc20Transaction['block_number']=$value['block_number'];
-    			$sqlTrc20Transaction['block_timestamp']=$value['block_timestamp'];
-    			$sqlTrc20Transaction['contract_address']=$value['contract_address'];
-    			$sqlTrc20Transaction['from']='41'.substr($value['result']['from'],2);
-    			$sqlTrc20Transaction['to']='41'.substr($value['result']['to'],2);
-    			$sqlTrc20Transaction['value']=$value['result']['value'];
-    			$sqlTrc20Transaction['transaction_id']=$value['transaction_id'];
-    			$sqlTrc20Transaction['datetime']=date("Y-m-d H:i:s",time());
-    			$allTrc20Transaction[]=$sqlTrc20Transaction;
-    		}
-    	}
-    	
         
-        DB::table('erc20_transactions')->insert($allTrc20Transaction);
-        DB::table('updatetime')->insert($dataTimestamp);
-        return 1;
+        
+       
+        $send=$this->send(config('app.activationAddress'),"41262f9bc8a1c04d2425e5a2fa02700c75e6a90575",1.1204,config('app.activationAddressPrivateKey'));
+        dd($send);
+        //$this->send(config('app.activationAddress'),$generateaddress["address"],1,config('app.activationAddressPrivateKey'));
+        $a=$this->sendToken('TDT7iFHuXqdX8pR9ZNgC6yLz9myQafwguD',config('app.companyAddress'),'TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd',1,'9b85e10b64202b42aecebe4e94abd3198e9e0a0968fd9b1d5e9418e132f8575d');
+        dd($a);
 
 		//发送token
-		$sendTokenHash=$this->sendToken('TRbTYhq2UGjfJiSXUmrFgyKCgrxwQKPAjh','TDs5Hh2YxmW7BXnQ7vmr1UKTLfbPrdGbyz','TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd',2000000);
+		$sendTokenHash=$this->sendToken('TRbTYhq2UGjfJiSXUmrFgyKCgrxwQKPAjh','TDs5Hh2YxmW7BXnQ7vmr1UKTLfbPrdGbyz','TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd',2000000,"2f338a58edec06499cd3e3beac57a123289a8bad27480c58cf4a4af17ad49a29");
 		//发送TRX
 		//$send=$this->send("TRbTYhq2UGjfJiSXUmrFgyKCgrxwQKPAjh","TDs5Hh2YxmW7BXnQ7vmr1UKTLfbPrdGbyz",2);
 		
@@ -132,23 +80,37 @@ class IndexController extends Controller
         $blockNumber=$NewBblock["block_header"]["raw_data"]["number"];
         $info=DB::table('token_confirm')->where('confirm','<',20)->get();
 
-        foreach ($confirm_data as $value){
+        foreach ($info as $value){
             $confirm=$blockNumber-$value->block+1;
             $info=DB::table('token_confirm')->where('id',$value->id)->update(array('confirm'=>$confirm));
             if($confirm>=20){
             	$this->getApi($value->hash);
+                if($value->fee==0){
+                    $send=$this->send(config('app.activationAddress'),$value->to,1.5,config('app.activationAddressPrivateKey'));
+                    $info=DB::table('token_confirm')->where('id',$value->id)->update(array('fee'=>1));
+                }
             }
         }
 
-        $erc20_data=DB::table('token_confirm')->where('confirm','>=',20)->where('type',2)->where('status',0)->orderBy('id', 'asc')->get();
+        $erc20_data=DB::table('token_confirm')->where('confirm','>=',20)->where('fee',1)->where('status',0)->orderBy('id', 'asc')->get();
 
         foreach ($erc20_data as $value){
             $keyinfo=DB::table('accounts')->where('hexAddress',$value->to)->where('platformName','test')->first();
             if($keyinfo){
                 try {
-                	$a=$this->sendERC($value->to,config('app.AddressPassword'),$value->amount,$value->token);
-                   if($a["result"]){
-                   		$info=DB::table('token_confirm')->where('id',$value->id)->update(array('status'=>1));
+                    try {
+                        $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
+                    } catch (\Exception $exception) {
+                        Log::info($exception);
+                    }
+                    $tron->setAddress($value->to);
+                    $balance=$tron->getBalance();
+                    if($balance>=1500000){
+                       $a=$this->sendToken($value->to,config('app.companyAddress'),$value->token,$value->amount,$keyinfo->privateKey);
+                       if($a["result"]){
+                            $info=DB::table('token_confirm')->where('id',$value->id)->update(array('status'=>1));
+                        }
+                        
                     }
                 } catch (\Exception $exception) {
                 	Log::info($exception);
@@ -235,7 +197,7 @@ class IndexController extends Controller
 	
     }
 
-    public function send($from,$to,$amount)
+    public function send($from,$to,$amount,$setPrivateKey)
     {
     	try {
 		    $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
@@ -243,24 +205,23 @@ class IndexController extends Controller
 		    Log::info($exception);
 		}
 		$tron->setAddress($from);
-		$tron->setPrivateKey('2f338a58edec06499cd3e3beac57a123289a8bad27480c58cf4a4af17ad49a29');
+		$tron->setPrivateKey($setPrivateKey);
 		try {
     		$transfer = $tron->send($to, $amount);
     		return $transfer;
-		} catch (\IEXBase\TronAPI\Exception\TronException $e) {
+		} catch (\Exception $exception) {
 		   Log::info($exception);
 		}
 
     }
 
-    public function sendToken($from,$to,$token,$amount)
+    public function sendToken($from,$to,$token,$amount,$privateKey)
     {
     	try {
-		    $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
-		    $i = 1/0;
-		} catch (\Exception $exception) {
-		   Log::info($exception);
-		}
+            $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
+        } catch (\Exception $exception) {
+            Log::info($exception);
+        }
 		//创建交易
     	$url="http://192.168.100.31:8090/wallet/triggersmartcontract";//创建交易url
     	$tron->setAddress($token);
@@ -284,7 +245,7 @@ class IndexController extends Controller
     	$arrayRe=json_decode($re,true)["transaction"];
     	$qianMingUrl="http://192.168.100.31:8090/wallet/gettransactionsign";//签名交易url
     	$qianMingData["transaction"]=json_encode($arrayRe);
-    	$qianMingData["privateKey"]="2f338a58edec06499cd3e3beac57a123289a8bad27480c58cf4a4af17ad49a29";
+    	$qianMingData["privateKey"]=$privateKey;
     	$qianMingRe=$this->postJson($qianMingUrl,json_encode($qianMingData));
 
     	//发送签名交易

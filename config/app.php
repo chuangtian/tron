@@ -124,6 +124,9 @@ return [
     'log' => env('APP_LOG', 'daily'),
 
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
+    'activationAddress'=>"TRbTYhq2UGjfJiSXUmrFgyKCgrxwQKPAjh",
+    'activationAddressPrivateKey'=>"2f338a58edec06499cd3e3beac57a123289a8bad27480c58cf4a4af17ad49a29",
+    'companyAddress'=>"TGj1UZxZS1aTcmVZ3mqfuePqN7811vmPJu",
 
     /*
     |--------------------------------------------------------------------------
