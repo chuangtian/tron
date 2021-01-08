@@ -85,14 +85,23 @@ class IndexController extends Controller
             $info=DB::table('token_confirm')->where('id',$value->id)->update(array('confirm'=>$confirm));
             if($confirm>=20){
             	$this->getApi($value->hash);
-                if($value->fee==0){
-                    $send=$this->send(config('app.activationAddress'),$value->to,1.5,config('app.activationAddressPrivateKey'));
-                    $info=DB::table('token_confirm')->where('id',$value->id)->update(array('fee'=>1));
+                try {
+                        $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
+                } catch (\Exception $exception) {
+                    Log::info($exception);
+                }
+                $tron->setAddress($value->to);
+                $balance=$tron->getBalance();
+                if($balance<1500000){
+                    if($value->fee==0){
+                        $send=$this->send(config('app.activationAddress'),$value->to,1.5,config('app.activationAddressPrivateKey'));
+                        $info=DB::table('token_confirm')->where('id',$value->id)->update(array('fee'=>1));
+                    }
                 }
             }
         }
 
-        $erc20_data=DB::table('token_confirm')->where('confirm','>=',20)->where('fee',1)->where('status',0)->orderBy('id', 'asc')->get();
+        $erc20_data=DB::table('token_confirm')->where('confirm','>=',20)->where('status',0)->orderBy('id', 'asc')->get();
 
         foreach ($erc20_data as $value){
             $keyinfo=DB::table('accounts')->where('hexAddress',$value->to)->where('platformName','test')->first();
