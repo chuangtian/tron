@@ -41,9 +41,10 @@ class IndexController extends Controller
 
     //接收推送写入数据库
     public function receiveERC(Request $request){
-        $date2= date("Y-m-d H:i:s", strtotime("-5 minute"));
+        //$date2= date("Y-m-d H:i:s", strtotime("-5 minute"));
         $trcHash=$request->input('transaction_id',false);
-        $info=DB::table('token_confirm')->where('update_time','>',$date2)->where('hash',$trcHash)->first();
+        //$info=DB::table('token_confirm')->where('update_time','>',$date2)->where('hash',$trcHash)->first();
+        $info=DB::table('token_confirm')->where('hash',$trcHash)->first();
         if($info){
             return 4;
         }
