@@ -13,8 +13,8 @@ class IndexController extends Controller
 {
 	const ADDRESS_HEX = '41ab6500e21bc89ce32dc6e54fcc0cc9f8b27ca54b';
     const ADDRESS_BASE58 = 'TRbTYhq2UGjfJiSXUmrFgyKCgrxwQKPAjh';
-    const FULL_NODE_API = 'http://192.168.100.31:8090';
-    const SOLIDITY_NODE_API = 'http://192.168.100.31:8091';
+    const FULL_NODE_API = 'http://127.0.0.1:8090';
+    const SOLIDITY_NODE_API = 'http://127.0.0.1:8091';
     //const CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';//正式服USDT
     const CONTRACT = 'TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd';//测试服USDT
 
@@ -94,7 +94,7 @@ class IndexController extends Controller
                 $balance=$tron->getBalance();
                 if($balance<1500000){
                     if($value->fee==0){
-                        $send=$this->send(config('app.activationAddress'),$value->to,1.5,config('app.activationAddressPrivateKey'));
+                        $send=$this->send(config('app.activationAddress'),$value->to,4,config('app.activationAddressPrivateKey'));
                         $info=DB::table('token_confirm')->where('id',$value->id)->update(array('fee'=>1));
                     }
                 }
@@ -188,7 +188,7 @@ class IndexController extends Controller
     public function generateaddress()
     {
     	try {
-	    	$url="http://192.168.100.31:8090/wallet/generateaddress";
+	    	$url="http://127.0.0.1:8090/wallet/generateaddress";
 	    	$re=$this->postJson($url,'');
 	    	$generateaddress=json_decode($re,true);
 	    	$generateaddress['datetime']=date("Y-m-d H:i:s",time());
