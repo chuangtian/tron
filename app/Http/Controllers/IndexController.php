@@ -233,7 +233,7 @@ class IndexController extends Controller
             Log::info($exception);
         }
 		//创建交易
-    	$url="http://192.168.100.31:8090/wallet/triggersmartcontract";//创建交易url
+    	$url="http://127.0.0.1:8090/wallet/triggersmartcontract";//创建交易url
     	$tron->setAddress($token);
     	$tokendata["contract_address"]=$tron->getAddress()['hex'];
     	$tron->setAddress($to);
@@ -253,13 +253,13 @@ class IndexController extends Controller
     	
     	//签名交易
     	$arrayRe=json_decode($re,true)["transaction"];
-    	$qianMingUrl="http://192.168.100.31:8090/wallet/gettransactionsign";//签名交易url
+    	$qianMingUrl="http://127.0.0.1:8090/wallet/gettransactionsign";//签名交易url
     	$qianMingData["transaction"]=json_encode($arrayRe);
     	$qianMingData["privateKey"]=$privateKey;
     	$qianMingRe=$this->postJson($qianMingUrl,json_encode($qianMingData));
 
     	//发送签名交易
-		$sendQianMingUrl="http://192.168.100.31:8090/wallet/broadcasttransaction";//签名交易
+		$sendQianMingUrl="http://127.0.0.1:8090/wallet/broadcasttransaction";//签名交易
 		$sendQianMingRe=$this->postJson($sendQianMingUrl,$qianMingRe);
 		return json_decode($sendQianMingRe,true);
     }
