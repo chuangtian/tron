@@ -22,7 +22,8 @@ class IndexController extends Controller
     public function index()
     {
 
-        
+        $send=$this->send(config('app.activationAddress'),"41262f9bc8a1c04d2425e5a2fa02700c75e6a90575",4,config('app.activationAddressPrivateKey'));
+        dd($send);
         
        
         $send=$this->send(config('app.activationAddress'),"41262f9bc8a1c04d2425e5a2fa02700c75e6a90575",1.1204,config('app.activationAddressPrivateKey'));
