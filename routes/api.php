@@ -20,3 +20,4 @@ Route::get('test', 'IndexController@index');
 Route::get('generateaddress', 'IndexController@generateaddress');
 Route::get('receiveERC', 'IndexController@receiveERC');
 Route::get('updateBlock', 'IndexController@updateBlock');
+Route::get('deletedata', 'IndexController@deletedata');

@@ -304,4 +304,12 @@ class IndexController extends Controller
 
     }
 
+    //删除数据
+    public function deletedata(){
+        $deldate=date("Y-m-d H:i:s",strtotime("-1 day"));
+        DB::table('trc20_transactions')->where("datetime","<=",$deldate)->delete();
+        DB::table('updatetime')->where("datetime","<=",$deldate)->delete();
+        return 1;
+    }
+
 }
