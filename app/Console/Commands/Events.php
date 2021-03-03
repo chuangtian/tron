@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class Events extends Command
 {
-    const CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';//正式服USDT
-    //const CONTRACT = 'TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd';//测试服USDT
+    //const CONTRACT = 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t';//正式服USDT
+    const CONTRACT = 'TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd';//测试服USDT
     /**
      * The name and signature of the console command.
      *
@@ -49,8 +49,8 @@ class Events extends Command
         }
         $max_block_timestamp=$min_block_timestamp+29;
         $allTrc20Transaction=array();
-        $Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$max_block_timestamp."000&limit=200";//正式服
-        //$Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$max_block_timestamp."000&limit=200";//nile测试服
+        //$Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$max_block_timestamp."000&limit=200";//正式服
+        $Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$min_block_timestamp."000&max_block_timestamp=".$max_block_timestamp."000&limit=200";//nile测试服
         $Trc20Transaction=$this->GetTrc20Transaction($Trc20TransactionUrl);
         if(count($Trc20Transaction["data"])>0){
             foreach ($Trc20Transaction["data"] as $key => $value) {
@@ -68,8 +68,8 @@ class Events extends Command
         $max_block_timestamp=$max_block_timestamp+1;
         $dataTimestamp['updatetime']=$max_block_timestamp+29;
         $dataTimestamp['datetime']=date("Y-m-d H:i:s",time());
-        $Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$max_block_timestamp."000&max_block_timestamp=".$dataTimestamp['updatetime']."000&limit=200";//正式服
-        //$Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$max_block_timestamp."000&max_block_timestamp=".$dataTimestamp['updatetime']."000&limit=200";//nile测试服
+        //$Trc20TransactionUrl="https://api.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$max_block_timestamp."000&max_block_timestamp=".$dataTimestamp['updatetime']."000&limit=200";//正式服
+        $Trc20TransactionUrl="https://nile.trongrid.io/v1/contracts/".self::CONTRACT."/events?event_name=Transfer&min_block_timestamp=".$max_block_timestamp."000&max_block_timestamp=".$dataTimestamp['updatetime']."000&limit=200";//nile测试服
         $Trc20Transaction=$this->GetTrc20Transaction($Trc20TransactionUrl);
         if(count($Trc20Transaction["data"])>0){
             foreach ($Trc20Transaction["data"] as $key => $value) {
@@ -118,7 +118,7 @@ class Events extends Command
             )
         )", ['min_block_timestamp' => $min_block_timestamp.'000','max_block_timestamp'=>$dataTimestamp["updatetime"].'000','contract_address'=>self::CONTRACT]);
        foreach ($results as $key => $value) {
-          $tUrl="http://127.0.0.1/api/receiveERC?transaction_id=".$value->transaction_id."&to=".$value->to."&contract_address=".$value->contract_address;
+          $tUrl="http://127.0.0.1:80/api/receiveERC?transaction_id=".$value->transaction_id."&to=".$value->to."&contract_address=".$value->contract_address;
             file_get_contents($tUrl);
        }
 
