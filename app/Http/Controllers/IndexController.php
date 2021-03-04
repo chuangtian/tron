@@ -21,7 +21,7 @@ class IndexController extends Controller
 
     public function index()
     {
-
+        $getNewblockUrl=self::FULL_NODE_API."/wallet/getnowblock";
         $NewBblock = json_decode(file_get_contents($getNewblockUrl),true);
         $blockNumber=$NewBblock["block_header"]["raw_data"]["number"];
         dd($blockNumber);
