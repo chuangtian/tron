@@ -21,14 +21,7 @@ class IndexController extends Controller
 
     public function index()
     {
-        try {
-            $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
-        } catch (\Exception $exception) {
-            Log::info($exception);
-        }
-        $tron->setAddress("TCYiVkoq5PLnmPcY3xDdbYVfiTZVu4Ct6F");
-        $balance=$tron->getTokenBalance("TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd");
-        dd($balance);
+
         $getNewblockUrl=self::FULL_NODE_API."/wallet/getnowblock";
         //$getNewblockUrl="https://api.nileex.io/wallet/getnowblock";
         $NewBblock = json_decode(file_get_contents($getNewblockUrl),true);
@@ -517,6 +510,29 @@ class IndexController extends Controller
             return $data;
         }
 
+    }
+
+    //获取trc20余额
+    public function($token,$address){
+        try {
+            $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
+        } catch (\Exception $exception) {
+            Log::info($exception);
+        }
+        $tron->setAddress($token);
+        $hexAddressContract=$tron->getAddress()['hex'];
+        $tron->setAddress($address);
+        $hexAddress=$tron->getAddress()['hex'];
+
+
+        $url="http://127.0.0.1:8090/wallet/triggersmartcontract";
+        $bas["contract_address"]=$hexAddressContract;
+        $bas["function_selector"]="balanceOf(address)";
+        $bas["parameter"]="0000000000000000000000".$hexAddress;
+        $bas["owner_address"]=$hexAddress;
+
+        $re=$this->postJson($url,json_encode($bas));
+        dd($re,$bas,$url);
     }
 
 }
