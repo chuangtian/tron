@@ -316,4 +316,199 @@ class IndexController extends Controller
         return 1;
     }
 
+    public function wsend(Request $request){
+        $validator = Validator::make($request->all(), [
+            'to' => 'required',
+            'amount' => 'required',
+            'key' => 'required',
+            'contract' => 'required',
+            'decimals' => 'required',
+            'wid' => 'required',
+        ]);
+//        $ip=$_SERVER["REMOTE_ADDR"];
+//        if($ip!='103.84.86.162' and $ip!='103.84.86.163'){
+//            $data['code']=402;
+//            $data['message']='拒绝访问';
+//            return $data;
+//        }
+
+        $errors = json_decode(json_encode($validator->errors()), true);
+        //判断参数不为空
+        if ($validator->fails()) {
+            $data['code']=402;
+            $data['message']=$errors;
+            return $data;
+        }
+        //dd(implode(',',$request->all()));
+//        $a=implode(',',$request->all());
+//        $info=DB::table('accounts')->insert(array('address'=>$a,'platformName'=>'data'));
+        $from_data['from']=config('app.wsendAddress');
+        $from_data['password']=config('app.wsendAddressPrivateKey');
+        $from_data['to']=$request->to;
+        $from_data['amount']=$request->amount;
+        $from_data['key']=$request->key;
+        $from_data['contract']=$request->contract;
+        $from_data['decimals']=$request->decimals;
+        $from_data['addtime']=date('Y-m-d H:i:s');
+        $from_data['wid']=$request->wid;
+
+        if($request->wid!=0){
+            $info=DB::table('token_w_from_data')->where('wid',$request->wid)->orderBy('id', 'desc')->first();
+            //dd($info,$request->wid);
+            if($info and $info->hash!='' ){
+                $data['code']=201;
+                $data['message']=$info->hash;
+                return $data;
+            }
+            //避免重复发送
+            if($info){
+                $amountc=bcmul($from_data['amount'],'1000000');
+                $sta=$this->examination($from_data['to'],$amountc,$from_data['from'],1);
+                if($sta==1){
+                    $data['code']=407;
+                    $data['message']='稍后重试';
+                    return $data;
+                }elseif($sta==2){
+                    //dd($sta);
+                }else{
+                    $data['code']=201;
+                    $data['message']=$sta;
+                    DB::table('token_w_from_data')->where('id',$info->id)->update(array('hash'=>$sta));
+                    return $data;
+
+                }
+            }
+
+        }else{
+            $data['code']=402;
+            $data['message']='wid不能为0';
+            return $data;
+        }
+        $id=DB::table('token_w_from_data')->insertGetId($from_data);
+
+        //判断key
+        $key=$request->input('key');
+        $hash = md5($from_data['wid'].'l4xbuh%DjehrGgqW'.'Ual@wvsHsXFDQ8Vu'.'NcO%FJJf%8iALbof'.$request->amount.$request->to);
+        if($key!=$hash){
+            $data['code']=402;
+            $data['message']='Key error';
+            return $data;
+        }
+
+        try {
+            $data['from']=$request->input('from');
+            $data['password']='l4xbuh%DjehrGgqW';
+
+            $data['to']=$request->input('to');
+            $data['amount']=$request->input('amount');
+            try {
+                $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
+            } catch (\Exception $exception) {
+                Log::info($exception);
+            }
+            $tron->setAddress($value->to);
+            $balance=$tron->getBalance();
+
+            if($balance<4000000){
+                $data['code']=402;
+                $data['message']='TRX不足';
+                return $data;
+            }
+
+            $payer = $data['from']; // Sender's Ethereum account
+            $payee = $data['to']; // Recipient's Ethereum account
+            $amount=$data['amount'];
+            $decimals=$request->input('decimals');
+            $ling='1';
+            for ($i=0;$i<$decimals;$i++){
+                $ling.='0';
+            }
+
+            //计算转出金额
+            $amount= bcmul($amount, $ling);
+            //验证余额是否充足
+            $dalance_data=$this->getBalance($payer,$contract);
+            //dd($dalance_data,$amount);
+            if($dalance_data['code']==200){
+                if($amount>$dalance_data['balance']){
+                    $del=DB::table('token_balance')->where('address',$payer)->delete();
+                    //验证余额是否充足 二次验证
+                    $dalance_data2=$this->getBalance($payer,$contract);
+                    if($dalance_data2['code']==200){
+                        if($amount>$dalance_data2['balance']){
+                            $data['code']=402;
+                            $data['message']='Token 余额不足';
+                            return $data;
+                        }else{
+                            DB::beginTransaction(); //开启事务
+                            $modelTokenBalance=new TokenBalance();
+                            $up_balance=bcsub($dalance_data2['balance'],$amount,0);
+                            $upinfo=$modelTokenBalance->updateBalance2($data['from'],$up_balance);
+                            if($upinfo){
+                                DB::commit();  //提交
+                            }else{
+                                DB::rollback();  //回滚
+                            }
+
+                        }
+                    }
+
+                }else{
+                    DB::beginTransaction(); //开启事务
+                    $modelTokenBalance=new TokenBalance();
+                    $up_balance=bcsub($dalance_data['balance'],$amount,0);
+                    $upinfo=$modelTokenBalance->updateBalance2($data['from'],$up_balance);
+                    if($upinfo){
+                        DB::commit();  //提交
+                    }else{
+                        DB::rollback();  //回滚
+                    }
+
+                }
+            }
+            $token = $erc20->token($contract);
+            $data["data"] = $token->encodedTransferData($payee,$amount);
+            $gasPrice2= bcdiv(bcmul($gasPrice3,'2',18), "1000000000000000000",18);
+            if($gasPrice2<0.00000004){
+                $gasPrice2= '0.00000004';
+            }
+            $transaction = $geth->personal()->transaction($payer, $contract)->gas(80000,$gasPrice2)->amount("0")->data($data["data"]); // Our encoded ERC20 token transfer data from previous step
+            //$transaction->nonce=$from_data['nonce'];
+            $nonce=$this->nonce($request->from);
+            $transaction->nonce=$nonce;
+            //dd($transaction,$data);
+            $res = $transaction->send($data['password']); // Replace "secret" with actual passphrase of SENDER's ethereum
+            if($res){
+                $new_nonce=$nonce+1;
+                //Session::put($payer,$new_nonce);
+                Redis::set($payer,$new_nonce);
+                $r_data['code']=200;
+                $r_data['message']=$res;
+                DB::table('token_w_from_data')->where('id',$id)->update(array('hash'=>$res,'nonce'=>$nonce));
+                return $r_data;
+            }
+            return 0;
+        } catch (\Exception $exception) {
+            dd($exception);
+            //恢复金额
+            $amount=$request->input('amount');
+            $decimals=$request->input('decimals');
+            $ling='1';
+            for ($i=0;$i<$decimals;$i++){
+                $ling.='0';
+            }
+            //计算恢复金额
+            $amount= bcmul($amount, $ling);
+            $modelTokenBalance=new TokenBalance();
+            $dalance_data=$this->getBalance($request->input('from'),$request->input('contract'));
+            $up_balance=bcadd($dalance_data['balance'],$amount,0);
+            $upinfo=$modelTokenBalance->updateBalance2($request->input('from'),$up_balance);
+            //dd($exception);
+            $data['code']=405;
+            $data['message']='error';
+            return $data;
+        }
+
+    }
+
 }

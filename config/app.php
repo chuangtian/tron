@@ -127,6 +127,8 @@ return [
     'activationAddress'=>"TXy2MHUKWTiNLBBHfJXCnwM6nzumMN7Zi7",
     'activationAddressPrivateKey'=>"a0b1ece28466a1899be458382e9f2e9424a3665fbbe8a45d4c8ef71fb1e1f404",
     'companyAddress'=>"TCYiVkoq5PLnmPcY3xDdbYVfiTZVu4Ct6F",
+    'wsendAddress'=>"TBUHpRwCMFtdbwCUDab9PnnkdiTmn9kDN3",
+    'wsendAddressPrivateKey'=>"020ab55185179174928bbdc85af7083b0b6f155ac42e7505df586100a8d4b1c6",
 
     /*
     |--------------------------------------------------------------------------
