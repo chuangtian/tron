@@ -79,7 +79,8 @@ class IndexController extends Controller
 
     //更新确认块转到指定账号
     public function updateBlock(){
-        $getNewblockUrl=self::FULL_NODE_API."/wallet/getnowblock";
+        //$getNewblockUrl=self::FULL_NODE_API."/wallet/getnowblock";
+        $getNewblockUrl="https://api.nileex.io/wallet/getnowblock";
         $NewBblock = json_decode(file_get_contents($getNewblockUrl),true);
         $blockNumber=$NewBblock["block_header"]["raw_data"]["number"];
         $info=DB::table('token_confirm')->where('confirm','<',20)->get();
