@@ -21,6 +21,14 @@ class IndexController extends Controller
 
     public function index()
     {
+        try {
+            $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
+        } catch (\Exception $exception) {
+            Log::info($exception);
+        }
+        $tron->setAddress("TCYiVkoq5PLnmPcY3xDdbYVfiTZVu4Ct6F");
+        $balance=$tron->getTokenBalance("TK6eQTi2s68UgqSxizz7T7M6QyPHbrqhcd");
+        dd();
         $getNewblockUrl=self::FULL_NODE_API."/wallet/getnowblock";
         //$getNewblockUrl="https://api.nileex.io/wallet/getnowblock";
         $NewBblock = json_decode(file_get_contents($getNewblockUrl),true);
