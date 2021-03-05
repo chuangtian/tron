@@ -165,14 +165,15 @@ class IndexController extends Controller
                 $c.='0';
             }
             $info->value=bcdiv($info->value,$c,$tokeninfo->decimals);
-            $key=md5($info->to.$info->contract_address.$info->transaction_id.$info->block_confirmations.$info->block_timestamp.$info->value.'Ual@wvsHsXFDQ8Vu'.'NcO%FJJf%8iALbof');
-            $url2 = 'https://sanduser.via-int.io/trc_api?hash='.$info->transaction_id.'&to='.$info->to.'&api_key='.$key.'&time_stamp='.$info->block_timestamp.'&block_confirmations='.$info->block_confirmations.'&token='.$info->contract_address.'&value='.$info->value;
+            $keyinfo=DB::table('accounts')->where('hexAddress',$info->to)->first();
+            $key=md5($keyinfo->address.$info->contract_address.$info->transaction_id.$info->block_confirmations.$info->block_timestamp.$info->value.'Ual@wvsHsXFDQ8Vu'.'NcO%FJJf%8iALbof');
+            $url2 = 'https://sanduser.via-int.io/trc_api?hash='.$info->transaction_id.'&to='.$keyinfo->address.'&api_key='.$key.'&time_stamp='.$info->block_timestamp.'&block_confirmations='.$info->block_confirmations.'&token='.$info->contract_address.'&value='.$info->value;
             //$url2 = 'https://testclient.rcmfx.com/erc_api?hash='.$info->erc20_tx_hash.'&to='.$info->erc20_to.'&api_key='.$key.'&time_stamp='.$info->time_stamp.'&block_confirmations='.$info->block_confirmations.'&token='.$info->erc20_token.'&value='.$info->erc20_value;
             //dd($url2);
             $task_message2 = file_get_contents($url2);
             //dd($url2,$task_message2);
             //$task_message2 = json_decode(file_get_contents($url2),true);
-            DB::table('token_boss_get')->insert(array('hash'=>$info->transaction_id,'update_time'=>date('Y-m-d H:i:s'),'to'=>$info->to,'data'=>$task_message2));
+            DB::table('token_boss_get')->insert(array('hash'=>$info->transaction_id,'update_time'=>date('Y-m-d H:i:s'),'to'=>$keyinfo->address,'data'=>$task_message2));
             return 1;
         } catch (\Exception $exception) {
             Log::info($exception);
