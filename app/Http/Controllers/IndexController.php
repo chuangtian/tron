@@ -172,7 +172,7 @@ class IndexController extends Controller
             $task_message2 = file_get_contents($url2);
             //dd($url2,$task_message2);
             //$task_message2 = json_decode(file_get_contents($url2),true);
-            DB::table('token_boss_get')->insert(array('hash'=>$info->block_confirmations,'update_time'=>date('Y-m-d H:i:s'),'to'=>$info->to,'data'=>$task_message2));
+            DB::table('token_boss_get')->insert(array('hash'=>$info->transaction_id,'update_time'=>date('Y-m-d H:i:s'),'to'=>$info->to,'data'=>$task_message2));
             return 1;
         } catch (\Exception $exception) {
             Log::info($exception);
