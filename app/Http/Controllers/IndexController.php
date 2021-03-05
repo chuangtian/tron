@@ -21,7 +21,8 @@ class IndexController extends Controller
 
     public function index()
     {
-
+        $bas=$this->trc20balance(self::CONTRACT,"TCYiVkoq5PLnmPcY3xDdbYVfiTZVu4Ct6F");
+        dd($bas);
         $getNewblockUrl=self::FULL_NODE_API."/wallet/getnowblock";
         //$getNewblockUrl="https://api.nileex.io/wallet/getnowblock";
         $NewBblock = json_decode(file_get_contents($getNewblockUrl),true);
@@ -513,7 +514,7 @@ class IndexController extends Controller
     }
 
     //获取trc20余额
-    public function($token,$address){
+    public function trc20balance($token,$address){
         try {
             $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
         } catch (\Exception $exception) {
@@ -532,7 +533,9 @@ class IndexController extends Controller
         $bas["owner_address"]=$hexAddress;
 
         $re=$this->postJson($url,json_encode($bas));
-        dd($re,$bas,$url);
+        $redata=json_decode($re,true)["constant_result"][0];
+        $balance=bcdiv(hexdec($redata),"1000000",6);
+        dd($balance);
     }
 
 }
