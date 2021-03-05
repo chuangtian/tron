@@ -531,6 +531,5 @@ class IndexController extends Controller
         }
 
     }
-    
 
 }
