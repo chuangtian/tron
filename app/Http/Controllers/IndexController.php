@@ -24,7 +24,7 @@ class IndexController extends Controller
     {
 
         //$bas=$this->trc20balance(self::CONTRACT,"TCYiVkoq5PLnmPcY3xDdbYVfiTZVu4Ct6F");
-        $bas=$this->trxbalance("TXx96TzEo6i6PiR5gmLQsQPSagRXcFq2JD");
+        $bas=$this->getApi("097c130cf8982350cb8852547cd4a58813cd38847201a97fa4900abd44723d70");
         dd($bas);
         $getNewblockUrl=self::FULL_NODE_API."/wallet/getnowblock";
         //$getNewblockUrl="https://api.nileex.io/wallet/getnowblock";
