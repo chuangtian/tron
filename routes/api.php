@@ -21,3 +21,5 @@ Route::get('generateaddress', 'IndexController@generateaddress');
 Route::get('receiveERC', 'IndexController@receiveERC');
 Route::get('updateBlock', 'IndexController@updateBlock');
 Route::get('deletedata', 'IndexController@deletedata');
+Route::get('getBalance', 'IndexController@getBalance2');
+Route::post('wsend123sadsaxzda', 'IndexController@wsend');
