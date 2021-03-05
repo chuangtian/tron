@@ -383,7 +383,7 @@ class IndexController extends Controller
 
         //判断key
         $key=$request->input('key');
-        $hash = md5($from_data['wid'].'l4xbuh%DjehrGgqW'.'Ual@wvsHsXFDQ8Vu'.'NcO%FJJf%8iALbof'.$request->amount.$request->to);
+        $hash = md5($from_data['wid'].'Ual@wvsHsXFDQ8Vu'.'NcO%FJJf%8iALbof'.$request->amount.$request->to);
         if($key!=$hash){
             $data['code']=402;
             $data['message']='Key error';
