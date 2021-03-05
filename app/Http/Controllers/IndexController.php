@@ -195,8 +195,17 @@ class IndexController extends Controller
     }
 
     //创建地址
-    public function generateaddress()
+    public function generateaddress(Request $request)
     {
+        //判断key
+        $key=$request->input('key');
+        $hash = md5('l4xbuh%DjehrGgqW'.'Ual@wvsHsXFDQ8Vu');
+        if($key!=$hash){
+            $data['code']=402;
+            $data['message']='Key error';
+            return $data;
+        }
+
         try {
             $url="http://127.0.0.1:8090/wallet/generateaddress";
             $re=$this->postJson($url,'');
