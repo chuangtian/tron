@@ -91,6 +91,19 @@ class IndexController extends Controller
         $info=DB::table('token_confirm')->where('confirm','<',20)->get();
 
         foreach ($info as $value){
+            $keyinfo1=DB::table('accounts')->where('hexAddress',$value->to)->first();
+            if($keyinfo1->platformName=="test"){
+                $activationAddress=config('app.activationAddress');
+                $activationAddressPrivateKey=config('app.activationAddressPrivateKey');
+            }
+            if($keyinfo1->platformName=="via"){
+                $activationAddress=config('app.viaactivationAddress');
+                $activationAddressPrivateKey=config('app.viaactivationAddressPrivateKey');
+            }
+            if($keyinfo1->platformName=="xg"){
+                $activationAddress=config('app.xgactivationAddress');
+                $activationAddressPrivateKey=config('app.xgactivationAddressPrivateKey');
+            }
             $confirm=$blockNumber-$value->block+1;
             $info=DB::table('token_confirm')->where('id',$value->id)->update(array('confirm'=>$confirm));
             if($confirm>=20){
@@ -104,7 +117,7 @@ class IndexController extends Controller
                 $balance=$tron->getBalance();
                 if($balance<1500000){
                     if($value->fee==0){
-                        $send=$this->send(config('app.activationAddress'),$value->to,4,config('app.activationAddressPrivateKey'));
+                        $send=$this->send($activationAddress,$value->to,4,$activationAddressPrivateKey);
                         $info=DB::table('token_confirm')->where('id',$value->id)->update(array('fee'=>1));
                     }
                 }
@@ -115,7 +128,7 @@ class IndexController extends Controller
 
         foreach ($erc20_data as $value){
             //$keyinfo=DB::table('accounts')->where('hexAddress',$value->to)->where('platformName','test')->first();
-            $keyinfo=DB::table('accounts')->where('hexAddress',$value->to)->where('platformName','test')->first();
+            $keyinfo=DB::table('accounts')->where('hexAddress',$value->to)->first();
             if($keyinfo){
                 try {
                     try {
@@ -176,8 +189,17 @@ class IndexController extends Controller
             }
             $info->value=bcdiv($info->value,$c,$tokeninfo->decimals);
             $keyinfo=DB::table('accounts')->where('hexAddress',$info->to)->first();
+            if($keyinfo->platformName=="test"){
+                $tsurl=config('app.tsurl');
+            }
+            if($keyinfo->platformName=="via"){
+                $tsurl=config('app.viatsurl');
+            }
+            if($keyinfo->platformName=="xg"){
+                $tsurl=config('app.xgtsurl');
+            }
             $key=md5($keyinfo->address.$info->contract_address.$info->transaction_id.$info->block_confirmations.$info->block_timestamp.$info->value.'Ual@wvsHsXFDQ8Vu'.'NcO%FJJf%8iALbof');
-            $url2 = 'https://sanduser.via-int.io/trc_api?hash='.$info->transaction_id.'&to='.$keyinfo->address.'&api_key='.$key.'&time_stamp='.$info->block_timestamp.'&block_confirmations='.$info->block_confirmations.'&token='.$info->contract_address.'&value='.$info->value;
+            $url2 = $tsurl.'?hash='.$info->transaction_id.'&to='.$keyinfo->address.'&api_key='.$key.'&time_stamp='.$info->block_timestamp.'&block_confirmations='.$info->block_confirmations.'&token='.$info->contract_address.'&value='.$info->value;
             //$url2 = 'https://testclient.rcmfx.com/erc_api?hash='.$info->erc20_tx_hash.'&to='.$info->erc20_to.'&api_key='.$key.'&time_stamp='.$info->time_stamp.'&block_confirmations='.$info->block_confirmations.'&token='.$info->erc20_token.'&value='.$info->erc20_value;
             //dd($url2);
             $task_message2 = file_get_contents($url2);

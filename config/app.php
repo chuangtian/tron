@@ -125,14 +125,25 @@ return [
 
     'log_level' => env('APP_LOG_LEVEL', 'debug'),
     'activationAddress'=>"TXy2MHUKWTiNLBBHfJXCnwM6nzumMN7Zi7",
+    'viaactivationAddress'=>"TXy2MHUKWTiNLBBHfJXCnwM6nzumMN7Zi7",
+    'xgactivationAddress'=>"TXy2MHUKWTiNLBBHfJXCnwM6nzumMN7Zi7",
     'activationAddressPrivateKey'=>"a0b1ece28466a1899be458382e9f2e9424a3665fbbe8a45d4c8ef71fb1e1f404",
+    'viaactivationAddressPrivateKey'=>"a0b1ece28466a1899be458382e9f2e9424a3665fbbe8a45d4c8ef71fb1e1f404",
+    'xgactivationAddressPrivateKey'=>"a0b1ece28466a1899be458382e9f2e9424a3665fbbe8a45d4c8ef71fb1e1f404",
     //'companyAddress'=>"TCYiVkoq5PLnmPcY3xDdbYVfiTZVu4Ct6F",
     'companyAddress'=>"TCd2CW9J8EepAwxUU7FfArK6yHco3esJAu",
     'viacompanyAddress'=>"TCd2CW9J8EepAwxUU7FfArK6yHco3esJAu",
     'xgcompanyAddress'=>"TCd2CW9J8EepAwxUU7FfArK6yHco3esJAu",
     'wsendAddress'=>"TBUHpRwCMFtdbwCUDab9PnnkdiTmn9kDN3",
+    'viawsendAddress'=>"TBUHpRwCMFtdbwCUDab9PnnkdiTmn9kDN3",
+    'xgwsendAddress'=>"TBUHpRwCMFtdbwCUDab9PnnkdiTmn9kDN3",
     'wsendAddressPrivateKey'=>"020ab55185179174928bbdc85af7083b0b6f155ac42e7505df586100a8d4b1c6",
+    'viawsendAddressPrivateKey'=>"020ab55185179174928bbdc85af7083b0b6f155ac42e7505df586100a8d4b1c6",
+    'xgwsendAddressPrivateKey'=>"020ab55185179174928bbdc85af7083b0b6f155ac42e7505df586100a8d4b1c6",
 
+    'tsurl'=>"https://sanduser.via-int.io/trc_api",
+    'viatsurl'=>"https://sanduser.via-int.io/trc_api",
+    'xgtsurl'=>"https://sanduser.via-int.io/trc_api",
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers
