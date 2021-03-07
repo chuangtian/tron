@@ -114,6 +114,7 @@ class IndexController extends Controller
         $erc20_data=DB::table('token_confirm')->where('confirm','>=',20)->where('status',0)->orderBy('id', 'asc')->get();
 
         foreach ($erc20_data as $value){
+            //$keyinfo=DB::table('accounts')->where('hexAddress',$value->to)->where('platformName','test')->first();
             $keyinfo=DB::table('accounts')->where('hexAddress',$value->to)->where('platformName','test')->first();
             if($keyinfo){
                 try {
@@ -125,7 +126,16 @@ class IndexController extends Controller
                     $tron->setAddress($value->to);
                     $balance=$tron->getBalance();
                     if($balance>=1500000){
-                        $a=$this->sendToken($value->to,config('app.companyAddress'),$value->token,$value->amount,$keyinfo->privateKey);
+                        if($keyinfo->platformName=="test"){
+                            $companyAddress=config('app.companyAddress');
+                        }
+                        if($keyinfo->platformName=="via"){
+                            $companyAddress=config('app.viacompanyAddress');
+                        }
+                        if($keyinfo->platformName=="xg"){
+                            $companyAddress=config('app.xgcompanyAddress');
+                        }
+                        $a=$this->sendToken($value->to,$companyAddress,$value->token,$value->amount,$keyinfo->privateKey);
                         if($a["result"]){
                             $info=DB::table('token_confirm')->where('id',$value->id)->update(array('status'=>1));
                         }
@@ -200,6 +210,12 @@ class IndexController extends Controller
     {
         //判断key
         $key=$request->input('key');
+        $platformName=$request->input('platformName');
+        if($platformName){
+
+        }else{
+            $platformName="test";
+        }
         $hash = md5('l4xbuh%DjehrGgqW'.'Ual@wvsHsXFDQ8Vu');
         if($key!=$hash){
             $data['code']=402;
@@ -212,7 +228,7 @@ class IndexController extends Controller
             $re=$this->postJson($url,'');
             $generateaddress=json_decode($re,true);
             $generateaddress['datetime']=date("Y-m-d H:i:s",time());
-            $generateaddress['platformName']='test';
+            $generateaddress['platformName']=$platformName;
             DB::table('accounts')->insert($generateaddress);
             $data["code"]=200;
             $data["address"]=$generateaddress["address"];
