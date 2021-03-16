@@ -23,3 +23,4 @@ Route::get('updateBlock', 'IndexController@updateBlock');
 Route::get('deletedata', 'IndexController@deletedata');
 Route::get('getBalance', 'IndexController@getBalance2');
 Route::post('wsend123sadsaxzda', 'IndexController@wsend');
+Route::post('xgsend123sadsaxzda', 'IndexController@xgsend');

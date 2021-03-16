@@ -143,7 +143,7 @@ return [
 
     'tsurl'=>"https://sanduser.via-int.io/trc_api",
     'viatsurl'=>"https://sanduser.via-int.io/trc_api",
-    'xgtsurl'=>"https://sanduser.via-int.io/trc_api",
+    'xgtsurl'=>"http://43.225.198.2/install/userapi/recharge",
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

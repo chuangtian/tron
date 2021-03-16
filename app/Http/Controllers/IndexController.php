@@ -23,6 +23,10 @@ class IndexController extends Controller
     public function index()
     {
 
+        $url="http://127.0.0.1:8090/wallet/generateaddress";
+        $re=$this->postJson($url,'');
+        $generateaddress=json_decode($re,true);
+        dd($generateaddress);
         //$bas=$this->trc20balance(self::CONTRACT,"TCYiVkoq5PLnmPcY3xDdbYVfiTZVu4Ct6F");
         $bas=$this->getApi("097c130cf8982350cb8852547cd4a58813cd38847201a97fa4900abd44723d70");
         dd($bas);
@@ -432,6 +436,126 @@ class IndexController extends Controller
         try {
             $data['from']=config('app.wsendAddress');
             $data['password']=config('app.wsendAddressPrivateKey');
+
+            $data['to']=$request->input('to');
+            $data['amount']=$request->input('amount');
+            try {
+                $tron = new Tron(new HttpProvider(self::FULL_NODE_API), new HttpProvider(self::SOLIDITY_NODE_API));
+            } catch (\Exception $exception) {
+                Log::info($exception);
+            }
+
+            $tron->setAddress($data['from']);
+            $balance=$tron->getBalance();
+
+            if($balance<4000000){
+                $data['code']=402;
+                $data['message']='TRX不足';
+                return $data;
+            }
+
+            $payer = $data['from']; // Sender's Ethereum account
+            $payee = $data['to']; // Recipient's Ethereum account
+            $amount=$data['amount'];
+            $decimals=$request->input('decimals');
+            $ling='1';
+            for ($i=0;$i<$decimals;$i++){
+                $ling.='0';
+            }
+
+            //计算转出金额
+            $amount= bcmul($amount, $ling);
+            //验证余额是否充足
+            $trc20balance=$this->trc20balance($from_data['contract'],$payer);
+            if($data['amount']>$trc20balance){
+                $data['code']=402;
+                $data['message']='TRC20不足';
+                return $data;
+            }
+
+            //dd($from_data);
+            $res=$this->sendToken($from_data['from'],$from_data['to'],$from_data['contract'],$amount,$from_data['password']);
+            //dd($res);
+            if($res['result']){
+
+                $r_data['code']=200;
+                $r_data['message']=$res['txid'];
+                DB::table('token_w_from_data')->where('id',$id)->update(array('hash'=>$res['txid']));
+                return $r_data;
+            }
+            return 0;
+        } catch (\Exception $exception) {
+            Log::info($exception);
+            $data1['code']=403;
+            $data1['message']='发送失败';
+            return $data1;
+        }
+
+    }
+
+    public function xgsend(Request $request){
+        $validator = Validator::make($request->all(), [
+            'to' => 'required',
+            'amount' => 'required',
+            'key' => 'required',
+            'contract' => 'required',
+            'decimals' => 'required',
+            'wid' => 'required',
+        ]);
+//        $ip=$_SERVER["REMOTE_ADDR"];
+//        if($ip!='103.84.86.162' and $ip!='103.84.86.163'){
+//            $data['code']=402;
+//            $data['message']='拒绝访问';
+//            return $data;
+//        }
+
+        $errors = json_decode(json_encode($validator->errors()), true);
+        //判断参数不为空
+        if ($validator->fails()) {
+            $data['code']=402;
+            $data['message']=$errors;
+            return $data;
+        }
+        //dd(implode(',',$request->all()));
+//        $a=implode(',',$request->all());
+//        $info=DB::table('accounts')->insert(array('address'=>$a,'platformName'=>'data'));
+        $from_data['from']=config('app.xgwsendAddress');
+        $from_data['password']=config('app.xgwsendAddressPrivateKey');
+        $from_data['to']=$request->to;
+        $from_data['amount']=$request->amount;
+        $from_data['key']=$request->key;
+        $from_data['contract']=$request->contract;
+        $from_data['decimals']=$request->decimals;
+        $from_data['addtime']=date('Y-m-d H:i:s');
+        $from_data['wid']=$request->wid;
+
+        if($request->wid!=0){
+            $info=DB::table('token_w_from_data')->where('wid',$request->wid)->orderBy('id', 'desc')->first();
+            //dd($info,$request->wid);
+            if($info and $info->hash!='' ){
+                $data['code']=201;
+                $data['message']=$info->hash;
+                return $data;
+            }
+        }else{
+            $data['code']=402;
+            $data['message']='wid不能为0';
+            return $data;
+        }
+        $id=DB::table('token_w_from_data')->insertGetId($from_data);
+
+        //判断key
+        $key=$request->input('key');
+        $hash = md5($from_data['wid'].'Ual@wvsHsXFDQ8Vu'.'NcO%FJJf%8iALbof'.$request->amount.$request->to);
+        if($key!=$hash){
+            $data['code']=402;
+            $data['message']='Key error';
+            return $data;
+        }
+
+        try {
+            $data['from']=config('app.xgwsendAddress');
+            $data['password']=config('app.xgwsendAddressPrivateKey');
 
             $data['to']=$request->input('to');
             $data['amount']=$request->input('amount');
